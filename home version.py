@@ -1,11 +1,11 @@
-#!/usr/bin/env python3.10.9
+#!/usr/bin/env python3.11
 # coding=utf-8
 
 """
-tested in Python 3.10.9
+tested in Python 3.11
 """
 import csv, pygame, sys, os, serial
-from pygame.locals import FULLSCREEN, USEREVENT, KEYUP, K_SPACE, K_RETURN, K_ESCAPE, QUIT, Color, K_1, K_2, K_3, K_c
+from pygame.locals import FULLSCREEN, USEREVENT, KEYUP, K_SPACE, K_RETURN, K_ESCAPE, QUIT, Color, K_c, K_b, K_m, K_p
 from os.path import isfile, join
 from random import randint, shuffle
 from time import gmtime, strftime
@@ -48,8 +48,10 @@ shuffle(happy_images_list)
 shuffle(neutral_images_list)
 shuffle(sad_images_list)
 
-testing_image_list = happy_images_list[40:45] + neutral_images_list[40:45] + sad_images_list[40:45]
-shuffle(testing_image_list)
+first_testing_image_list = happy_images_list[40:43] + neutral_images_list[40:43] + sad_images_list[40:43]
+second_testing_image_list = happy_images_list[43:46] + neutral_images_list[43:46] + sad_images_list[43:46]
+shuffle(first_testing_image_list)
+shuffle(second_testing_image_list)
 
 happy_images_list = happy_images_list[:40]
 neutral_images_list = neutral_images_list[:40]
@@ -97,27 +99,37 @@ def select_slide(slide_name, variables=None, answers_options = ["Neutral", "Happ
             " ",
             u"Se te indicará paso a paso que hacer."
         ],
-        'Practice': [
+        'Practice_1': [
             u"Empezaremos con una práctica para familiarizarnos con la tarea.",
             " ",
             u"Luego de ver un rostro deberás categorizar su expresión emocional lo más rápido y preciso posible.",
+            " ",
+            u"Para este bloque tendrás que responder con la mano "+ ("derecha." if variables.get("hand", "R") == "R" else "izquierda."),
+        ],
+        'Practice_2': [
+            u"Ahora haremos una segunda práctica.",
+            " ",
+            u"Recuerda que luego de ver un rostro deberás categorizar su expresión emocional lo más rápido y preciso posible.",
+            " ",
+            u"Para este bloque tendrás que responder con la mano "+ ("derecha." if variables.get("hand", "R") == "R" else "izquierda."),
         ],
         'intro_block': [
             u"Ahora comenzaremos con el experimento.",
             " ",
             u"Se le presentará una secuencia de caras con diferentes expresiones emocionales.",
             u"Su tarea es categorizar la emoción de cada cara lo más rápido y preciso posible.",
+            " ",
+            u"Para este bloque tendrás que responder con la mano "+ ("derecha." if variables.get("hand", "R") == "R" else "izquierda."),
         ],
         'Question': [
-            u"1: " + variables["answers_options_spanish"][0] + "      2: " + variables["answers_options_spanish"][1] + "      3: " + variables["answers_options_spanish"][2]
+            u"C: " + variables["answers_options_spanish"][0] + "      B: " + variables["answers_options_spanish"][1] + "      M: " + variables["answers_options_spanish"][2]
         ],
         'Break': [
             u"Puedes tomar un descanso.",
             " ",
             u"Para el siguiente bloque tendrás que responder con la mano contraria.",
             " ",
-            u"Si en este bloque respondiste con la mano derecha, en el siguiente deberás",
-            u"responder con la mano izquierda y viceversa.",
+            u"En este bloque deberás responder con la mano "+ ("derecha." if variables.get("hand", "R") == "R" else "izquierda."),
             " ",
             u"Cuando te sientas listo para continuar presiona Espacio."
         ],
@@ -130,9 +142,8 @@ def select_slide(slide_name, variables=None, answers_options = ["Neutral", "Happ
 
     return (basic_slides[slide_name])
 
+
 # EEG Functions
-
-
 def init_lpt(address):
     """Creates and tests a parallell port"""
     try:
@@ -188,9 +199,9 @@ def send_triggert(trigger):
         print('Failed to send trigger ' + str(trigger))
 
 
-def sleepy_trigger(trigger, address, latency):
+def sleepy_trigger(trigger, latency=100):
     send_triggert(trigger)
-    pygame.time.wait(100)
+    pygame.time.wait(latency)
 
 
 def close_com():
@@ -373,15 +384,15 @@ def wait_answer(image, testing = False, answers_options = ["Neutral", "Happy", "
             if event.type == KEYUP and event.key == K_ESCAPE and debug_mode:
                 pygame_exit()
 
-            elif event.type == KEYUP and event.key == K_1:
+            elif event.type == KEYUP and event.key == K_c:
                 selected_answer = answers_options[0]
                 done = True
             
-            elif event.type == KEYUP and event.key == K_2:
+            elif event.type == KEYUP and event.key == K_b:
                 selected_answer = answers_options[1]
                 done = True
             
-            elif event.type == KEYUP and event.key == K_3:
+            elif event.type == KEYUP and event.key == K_m:
                 selected_answer = answers_options[2]
                 done = True
 
@@ -406,7 +417,7 @@ def wait_answer(image, testing = False, answers_options = ["Neutral", "Happy", "
     return ({"rt": rt, "is_correct": is_correct, "selected_answer": selected_answer})
 
 
-def show_images(image_list, practice=False, uid=None, dfile=None, block=None):
+def show_images(image_list, practice=False, uid=None, dfile=None, block=None, block_answers_order = ["Neutral", "Happy", "Sad"]):
     phase_change = USEREVENT + 5
     pygame.time.set_timer(phase_change, 500, loops=1)
 
@@ -425,7 +436,7 @@ def show_images(image_list, practice=False, uid=None, dfile=None, block=None):
             if event.type == KEYUP and event.key == K_ESCAPE and debug_mode:
                 pygame_exit()
 
-            elif event.type == KEYUP and event.key == K_c and debug_mode:
+            elif event.type == KEYUP and event.key == K_p and debug_mode:
                 done = True
 
             elif event.type == phase_change:
@@ -444,9 +455,8 @@ def show_images(image_list, practice=False, uid=None, dfile=None, block=None):
                     pygame.time.set_timer(phase_change, 200, loops=1)
                     actual_phase = 3
                 elif actual_phase == 3:
-                    shuffle(answers_options)
-                    answer = wait_answer(image_list[count], practice, answers_options)
-                    answers_list.append([image_list[count], answer, answers_options[:]]) # Se usa [:] para copiar la lista y no referenciarla
+                    answer = wait_answer(image_list[count], practice, block_answers_order)
+                    answers_list.append([image_list[count], answer, block_answers_order[:]]) # Se usa [:] para copiar la lista y no referenciarla
                     count += 1
                     if count >= len(image_list):
                         done = True
@@ -520,22 +530,39 @@ def main():
     if not os.path.exists('data/'):
         os.makedirs('data/')
 
-    # Username = id_condition_geometry_hand
-    subj_name = input(
-        "Ingrese el ID del participante y presione ENTER para iniciar: ")
+    # Username = id_condition_hand_answersOrder
+    # condition = control or experimental, hand = L or R, answersOrder = 2 digits from 1 to 6
+    # example: 4321_E_R_12
 
-    #while (len(subj_name.split("_")) != 4):
-    #    os.system('cls')
-    #    print("ID ingresado no cumple con las condiciones, contacte con el encargado...")
-    #    subj_name = input(
-    #        "Ingrese el ID del participante y presione ENTER para iniciar: ")
+    correct_sub_name = False
+    first_round = True
 
-    while not subj_name or subj_name.strip() == "":
-        print("El ID no puede estar vacío.")
+    while not correct_sub_name:
+        os.system('cls')
+        if not first_round:
+            print("ID ingresado no cumple con las condiciones, contacte con el encargado...")
+
+        first_round = False
         subj_name = input(
             "Ingrese el ID del participante y presione ENTER para iniciar: ")
+        
+        if not subj_name or subj_name.strip() == "" or len(subj_name.split("_")) != 4:
+            continue
+
+        uid = subj_name.split("_")[0].strip()
+        condition = subj_name.split("_")[1].strip()
+        firsthand = subj_name.split("_")[2].strip()
+        secondhand = "L" if firsthand == "R" else "R"
+        answers_order_1 = int(subj_name.split("_")[3].strip()[0])
+        answers_order_2 = int(subj_name.split("_")[3].strip()[1])
+
+        if condition in ["C", "E"] and firsthand in ["L", "R"] and answers_order_1 in range(1,7) and answers_order_2 in range(1,7):
+            correct_sub_name = True
     
-    uid = subj_name.strip()
+    print("Condición seleccionada: " + condition) if debug_mode else None
+    print("Mano de respuestas inicial: " + firsthand) if debug_mode else None
+    print("Orden de respuestas bloque 1: " + ",".join(answers_options_order[answers_order_1])) if debug_mode else None
+    print("Orden de respuestas bloque 2: " + ",".join(answers_options_order[answers_order_2])) if debug_mode else None
 
     csv_name = join('data', date_name + '_' + subj_name + '.csv')
     dfile = open(csv_name, 'w')
@@ -549,23 +576,45 @@ def main():
     paragraph(select_slide('welcome'), key = K_SPACE)
 
     # ------------------------ Practice block ------------------------
-    paragraph(select_slide('Practice', variables={
-          "block_number": 0, "practice": True}), key = K_SPACE)
+    paragraph(select_slide('Practice_1', variables={
+          "block_number": 0, "practice": True, "hand": firsthand}), key = K_SPACE)
     
+    # Para la práctica se usará un orden de respuestas que no esté en la variable de answers_order_1 o answers_order_2
+    numbers_list = [1, 2, 3, 4, 5, 6]
+
+    # Remover los números ya usados
+    numbers_list.remove(answers_order_1)
+    numbers_list.remove(answers_order_2)
+
+    numero_aleatorio = randint(0, len(numbers_list)-1)
+    numero_aleatorio = numbers_list[numero_aleatorio]
+        
     if debug_mode:
-        show_images(testing_image_list, practice = False, uid=uid, dfile=dfile, block=0)
+        show_images(first_testing_image_list, practice = False, uid=uid, dfile=dfile, block=0, block_answers_order = answers_options_order[numero_aleatorio])
     else:
-        show_images(testing_image_list, practice = True)
+        show_images(first_testing_image_list, practice = True)
+
+    paragraph(select_slide('Practice_2', variables={
+          "block_number": 0, "practice": True, "hand": secondhand}), key = K_SPACE)
+
+    numbers_list.remove(numero_aleatorio)
+    numero_aleatorio = randint(0, len(numbers_list)-1)
+    numero_aleatorio = numbers_list[numero_aleatorio]
+
+    if debug_mode:
+        show_images(second_testing_image_list, practice = False, uid=uid, dfile=dfile, block=0, block_answers_order = answers_options_order[numero_aleatorio])
+    else:
+        show_images(second_testing_image_list, practice = True)
 
     # ------------------------ first block ------------------------
 
-    paragraph(select_slide('intro_block'), key = K_SPACE)
-    show_images(first_experiment_block, practice = False, uid=uid, dfile=dfile, block=1)
+    paragraph(select_slide('intro_block', variables= {"hand": firsthand}), key = K_SPACE)
+    show_images(first_experiment_block, practice = False, uid=uid, dfile=dfile, block=1, block_answers_order = answers_options_order[answers_order_1])
     # sleepy_trigger(240 + 1, lpt_address, trigger_latency) # block number
 
-    paragraph(select_slide('Break'), key = K_SPACE, no_foot = True)
+    paragraph(select_slide('Break', variables= {"hand": secondhand}), key = K_SPACE, no_foot = True)
 
-    show_images(second_experiment_block, practice = False, uid=uid, dfile=dfile, block=2)
+    show_images(second_experiment_block, practice = False, uid=uid, dfile=dfile, block=2, block_answers_order = answers_options_order[answers_order_2])
     # sleepy_trigger(240 + 1, lpt_address, trigger_latency) # block number
 
     paragraph(select_slide('farewell'), key = K_SPACE, no_foot = True)
