@@ -399,11 +399,8 @@ def wait_answer(image, testing = False, answers_options = ["Neutral", "Happy", "
     rt = pygame.time.get_ticks() - tw
 
     if (len(image.split("\\")) >= 3 and not testing):
-        print(image.split("\\")[2]) if debug_mode else None
         image_type = image.split("\\")[2]
-
         print(image_type) if debug_mode else None
-
         print(selected_answer) if debug_mode else None
 
         is_correct = selected_answer == image_type
