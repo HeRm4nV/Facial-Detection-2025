@@ -10,6 +10,10 @@ from os.path import isfile, join
 from random import randint, shuffle
 from time import gmtime, strftime
 
+from pathlib import Path
+
+script_path = Path(__file__).parent.resolve()
+
 debug_mode = False # Modo de depuración (True/False)
 
 class TextRectException(Exception):
@@ -21,7 +25,7 @@ class TextRectException(Exception):
 
 # Configurations:
 FullScreenShow = True  # Pantalla completa automáticamente al iniciar el experimento
-test_name = "Facial Stimuli Task"
+test_name = "Facial Detection Task"
 date_name = strftime("%Y-%m-%d_%H-%M-%S", gmtime())
 
 answers_options = ["Neutral", "Happy", "Sad"]
@@ -37,12 +41,12 @@ answers_options_order = {
 }
 
 # Image Loading
-happy_images_list = ["media\\images\\Happy\\" + f for f in os.listdir(
-    "media\\images\\Happy") if isfile(join("media\\images\\Happy", f))]
-neutral_images_list = ["media\\images\\Neutral\\" + f for f in os.listdir(
-    "media\\images\\Neutral") if isfile(join("media\\images\\Neutral", f))]
-sad_images_list = ["media\\images\\Sad\\" + f for f in os.listdir(
-    "media\\images\\Sad") if isfile(join("media\\images\\Sad", f))]
+happy_images_list = [script_path/"media"/"images"/"Happy"/ f for f in os.listdir(
+    script_path/"media"/"images"/"Happy") if isfile(join(script_path/"media"/"images"/"Happy", f))]
+neutral_images_list = [script_path/"media"/"images"/"Neutral"/ f for f in os.listdir(
+    script_path/"media"/"images"/"Neutral") if isfile(join(script_path/"media"/"images"/"Neutral", f))]
+sad_images_list = [script_path/"media"/"images"/"Sad"/ f for f in os.listdir(
+    script_path/"media"/"images"/"Sad") if isfile(join(script_path/"media"/"images"/"Sad", f))]
 
 shuffle(happy_images_list)
 shuffle(neutral_images_list)
@@ -220,9 +224,9 @@ def setfonts():
     global bigchar, char, charnext
     pygame.font.init()
     font = join('media', 'Arial_Rounded_MT_Bold.ttf')
-    bigchar = pygame.font.Font(font, 96)
-    char = pygame.font.Font(font, 32)
-    charnext = pygame.font.Font(font, 24)
+    bigchar = pygame.font.Font(script_path/font, 96)
+    char = pygame.font.Font(script_path/font, 32)
+    charnext = pygame.font.Font(script_path/font, 24)
 
 
 def paragraph(text, key=None, no_foot=False, color=None, limit_time=0, row=None, is_clean=True):
@@ -398,8 +402,12 @@ def wait_answer(image, testing = False, answers_options = ["Neutral", "Happy", "
 
     rt = pygame.time.get_ticks() - tw
 
-    if (len(image.split("\\")) >= 3 and not testing):
-        image_type = image.split("\\")[2]
+    # Se obtiene el path relativo de la imagen
+    relative_path = Path(image).relative_to(script_path)
+
+    # Se divide el path relativo para obtener las carpetas que contienen la imagen
+    if (len(relative_path.parts) >= 3 and not testing):
+        image_type = relative_path.parts[2]
         print(image_type) if debug_mode else None
         print(selected_answer) if debug_mode else None
 
@@ -524,8 +532,8 @@ def main():
     init_com()
 
     # Si no existe la carpeta data se crea
-    if not os.path.exists('data/'):
-        os.makedirs('data/')
+    if not os.path.exists(script_path/'data/'):
+        os.makedirs(script_path/'data/')
 
     # Username = id_condition_hand_answersOrder
     # condition = control or experimental, hand = L or R, answersOrder = 2 digits from 1 to 6
@@ -561,8 +569,8 @@ def main():
     print("Orden de respuestas bloque 1: " + ",".join(answers_options_order[answers_order_1])) if debug_mode else None
     print("Orden de respuestas bloque 2: " + ",".join(answers_options_order[answers_order_2])) if debug_mode else None
 
-    csv_name = join('data', date_name + '_' + subj_name + '.csv')
-    dfile = open(csv_name, 'w')
+    csv_name = date_name + '_' + subj_name + '.csv'
+    dfile = open(script_path/"data"/csv_name, 'w')
     dfile.write("%s,%s,%s,%s,%s,%s,%s,%s\n" % ("Sujeto", "IdImagen", "Bloque", "TReaccion", "TipoImagen", "OrdenRespuestas", "Respuesta", "Acierto"))
     dfile.flush()
 
