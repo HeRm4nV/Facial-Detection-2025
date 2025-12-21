@@ -78,14 +78,42 @@ start_trigger = 254
 stop_trigger = 255
 
 # Experiment Trigger list
-# 1-240: ID images, Ok
-# 241-243: Block ID's, Ok
-# 244: fixation, Ok
-# 250: Correct answer
-# 251: Incorrect answer
+
+# 100: Inicio experimento / instrucciones
+# 101: Inicio bloque 1
+# 102: Fin bloque 1 / inicio pausa
+# 103: Inicio bloque 2
+# 104: Fin experimento
+# 200: Onset cruz de fijación
+# 310: Onset cara Neutra
+# 320: Onset cara Feliz
+# 330: Onset cara Triste
+# 399: Offset cara (desaparición)
+# 400: Onset pantalla de pregunta
+# 501: Tecla presionada: "Triste"
+# 502: Tecla presionada: "Neutra"
+# 503: Tecla presionada: "Feliz"
+# 600: Inicio ITI (Pantalla en blanco)
 
 # 254: Start experiment
 # 255: Stop experiment
+
+trigger_helper = {
+    "instruction": 100,
+    "start_block_1": 101,
+    "end_block_1": 102,
+    "start_block_2": 103,
+    "fixation_onset": 200,
+    "neutral_face_onset": 310,
+    "happy_face_onset": 320,
+    "sad_face_onset": 330,
+    "face_offset": 399,
+    "question_onset": 400,
+    "answer_sad": 501,
+    "answer_neutral": 502,
+    "answer_happy": 503,
+    "iti_onset": 600
+}
 
 # Onscreen instructions
 def select_slide(slide_name, variables=None, answers_options = ["Neutral", "Happy", "Sad"]):
