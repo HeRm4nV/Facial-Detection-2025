@@ -103,16 +103,16 @@ trigger_helper = {
     "start_block_1": 101,
     "end_block_1": 102,
     "start_block_2": 103,
-    "fixation_onset": 200,
-    "neutral_face_onset": 310,
-    "happy_face_onset": 320,
-    "sad_face_onset": 330,
-    "face_offset": 399,
-    "question_onset": 400,
-    "answer_sad": 501,
-    "answer_neutral": 502,
-    "answer_happy": 503,
-    "iti_onset": 600
+    "end_block_1": 104,
+    "fixation_onset": 150,
+    "neutral_face_onset": 160,
+    "happy_face_onset": 170,
+    "sad_face_onset": 180,
+    "face_offset": 190, # = iti_onset
+    "question_onset": 200,
+    "answer_neutral": 210,
+    "answer_happy": 220,
+    "answer_sad": 230
 }
 
 # Onscreen instructions
@@ -383,7 +383,7 @@ def show_image(image, scale, grayscale=False):
     except pygame.error as e:
         print(f"Error al cargar imagen {image}: {e}") if debug_mode else None
         return
-    
+
     image_real_size = picture.get_size()
     percentage = scale / image_real_size[0]
     picture = pygame.transform.scale(picture, [int(scale), int(image_real_size[1]*percentage)])
@@ -398,7 +398,7 @@ def show_image(image, scale, grayscale=False):
                 picture.set_at((x, y), (gray, gray, gray, a))
 
     screen.blit(picture, image_in_center(picture, ydesv=-int(resolution[1] / 16) ))
-    
+
     pygame.display.flip()
 
 
@@ -419,16 +419,18 @@ def wait_answer(image, testing = False, answers_options = ["Neutral", "Happy", "
             elif event.type == KEYUP and event.key == K_c:
                 selected_answer = answers_options[0]
                 done = True
-            
+
             elif event.type == KEYUP and event.key == K_b:
                 selected_answer = answers_options[1]
                 done = True
-            
+
             elif event.type == KEYUP and event.key == K_m:
                 selected_answer = answers_options[2]
                 done = True
 
     rt = pygame.time.get_ticks() - tw
+
+    sleepy_trigger(210 + (10 if selected_answer == "Happy" else 0) + (20 if selected_answer == "Sad" else 0), lpt_address, trigger_latency) # user answer trigger
 
     # Se obtiene el path relativo de la imagen
     relative_path = Path(image).relative_to(script_path)
@@ -445,7 +447,7 @@ def wait_answer(image, testing = False, answers_options = ["Neutral", "Happy", "
 
         #print(252 + (0 if image_type == "B" else 1)) if debug_mode else None
         # sleepy_trigger(252 + (0 if image_type == "B" else 1) , lpt_address, trigger_latency) # user answer
-        
+
     pygame.event.clear()                    # CLEAR EVENTS
     return ({"rt": rt, "is_correct": is_correct, "selected_answer": selected_answer})
 
@@ -478,24 +480,31 @@ def show_images(image_list, practice=False, uid=None, dfile=None, block=None, bl
                     screen.blit(fix, fixbox)
                     pygame.display.update(fixbox)
                     pygame.display.flip()
-                    # sleepy_trigger(244, lpt_address, trigger_latency) # fixation
+                    sleepy_trigger(150, lpt_address, trigger_latency) # fixation
                     pygame.time.set_timer(phase_change, 1000, loops=1)
                     actual_phase = 2
                 elif actual_phase == 2:
                     show_image(image_list[count], base_size, grayscale=True)
-                    # sleepy_trigger(240 + (0 if condition == "sham" else 1) + (4 if image_list[count].split('\\')[2] == "N" else 0), lpt_address, trigger_latency) # Exposure image trigger first
-                    # sleepy_trigger(int(image_list[count].split('\\')[3].split("_")[0]), lpt_address, trigger_latency) # image ID
+
+                    relative_path = Path(image).relative_to(script_path)
+                    image_type = relative_path.parts[2]
+                    sleepy_trigger(160 + (10 if image_type == "Happy" else 0) + (20 if image_type == "Sad" else 0), lpt_address, trigger_latency) # image type trigger
+
                     pygame.time.set_timer(phase_change, 200, loops=1)
                     actual_phase = 3
                 elif actual_phase == 3:
+
+                    sleepy_trigger(200, lpt_address, trigger_latency) # question onset trigger
                     answer = wait_answer(image_list[count], practice, block_answers_order)
                     answers_list.append([image_list[count], answer, block_answers_order[:]]) # Se usa [:] para copiar la lista y no referenciarla
                     count += 1
                     if count >= len(image_list):
                         done = True
-                    
+
                     screen.fill(background)
                     pygame.display.flip()
+                    sleepy_trigger(190, lpt_address, trigger_latency) # image offset trigger
+
                     pygame.time.set_timer(phase_change, randint(1000, 1200), loops=1)
                     actual_phase = 1
 
@@ -520,38 +529,6 @@ def show_images(image_list, practice=False, uid=None, dfile=None, block=None, bl
         dfile.flush()
     else:
         print("Error al cargar el archivo de datos")
-
-
-def fixation_image_list(fixation_time, fixation=True):
-
-    fixation_event = USEREVENT + 6
-    pygame.time.set_timer(fixation_event, fixation_time, loops=1)
-    done = False
-
-    screen.fill(background)
-    pygame.display.flip()
-    if fixation:
-        screen.blit(fix, fixbox)
-        pygame.display.update(fixbox)
-    pygame.display.flip()
-
-    tw = pygame.time.get_ticks()
-
-    while not done:
-        for event in pygame.event.get():
-            if event.type == KEYUP and event.key == K_ESCAPE:
-                pygame_exit()
-            elif event.type == KEYUP and event.key == K_c:
-                done = True
-
-            elif event.type == fixation_event:  # and pygame.time.get_ticks() - tw >= fixation_time
-                # if fixation:
-                    # sleepy_trigger(244, lpt_address, trigger_latency) # fixation
-                done = True
-                break
-
-    pygame.time.set_timer(fixation_event, 0)
-    pygame.event.clear()                    # CLEAR EVENTS
 
 # Main Function
 def main():
@@ -578,7 +555,7 @@ def main():
         first_round = False
         subj_name = input(
             "Ingrese el ID del participante y presione ENTER para iniciar: ")
-        
+
         if not subj_name or subj_name.strip() == "" or len(subj_name.split("_")) != 4:
             continue
 
@@ -591,7 +568,7 @@ def main():
 
         if condition in ["C", "E"] and firsthand in ["L", "R"] and answers_order_1 in range(1,7) and answers_order_2 in range(1,7):
             correct_sub_name = True
-    
+
     print("Condición seleccionada: " + condition) if debug_mode else None
     print("Mano de respuestas inicial: " + firsthand) if debug_mode else None
     print("Orden de respuestas bloque 1: " + ",".join(answers_options_order[answers_order_1])) if debug_mode else None
@@ -611,7 +588,7 @@ def main():
     # ------------------------ Practice block ------------------------
     paragraph(select_slide('Practice_1', variables={
           "block_number": 0, "practice": True, "hand": firsthand}), key = K_SPACE)
-    
+
     # Para la práctica se usará un orden de respuestas que no esté en la variable de answers_order_1 o answers_order_2
     numbers_list = [1, 2, 3, 4, 5, 6]
 
@@ -621,7 +598,7 @@ def main():
 
     numero_aleatorio = randint(0, len(numbers_list)-1)
     numero_aleatorio = numbers_list[numero_aleatorio]
-        
+
     if debug_mode:
         show_images(first_testing_image_list, practice = False, uid=uid, dfile=dfile, block=0, block_answers_order = answers_options_order[numero_aleatorio])
     else:
@@ -641,13 +618,19 @@ def main():
 
     # ------------------------ first block ------------------------
 
+    sleepy_trigger(100, lpt_address, trigger_latency) # instructions
     paragraph(select_slide('intro_block', variables= {"hand": firsthand}), key = K_SPACE)
+
+    sleepy_trigger(101, lpt_address, trigger_latency) # start block 1
     show_images(first_experiment_block, practice = False, uid=uid, dfile=dfile, block=1, block_answers_order = answers_options_order[answers_order_1])
+    sleepy_trigger(102, lpt_address, trigger_latency) # end block 1
     # sleepy_trigger(240 + 1, lpt_address, trigger_latency) # block number
 
+    sleepy_trigger(100, lpt_address, trigger_latency) # instructions
     paragraph(select_slide('Break', variables= {"hand": secondhand}), key = K_SPACE, no_foot = True)
-
+    sleepy_trigger(103, lpt_address, trigger_latency) # start block 2
     show_images(second_experiment_block, practice = False, uid=uid, dfile=dfile, block=2, block_answers_order = answers_options_order[answers_order_2])
+    sleepy_trigger(104, lpt_address, trigger_latency) # end block 2
     # sleepy_trigger(240 + 1, lpt_address, trigger_latency) # block number
 
     paragraph(select_slide('farewell'), key = K_SPACE, no_foot = True)
