@@ -513,20 +513,23 @@ def show_images(image_list, practice=False, uid=None, dfile=None, block=None, bl
     pygame.event.clear()                    # CLEAR EVENTS
 
     # acá se almacenará la answers_list en el archivo dfile
-    if dfile is not None:
+    if dfile is not None and practice == False and uid is not None and block is not None:
         for answer in answers_list:
             # Unir la lista con guiones en lugar de comas
             answers_order = "-".join(answer[2])  # "Neutral-Happy-Sad"
             dfile.write("%s,%s,%s,%s,%s,%s,%s,%s\n" % (uid,
-                                                 answer[0].split('\\')[-1].split('.')[0],
+                                                 (Path(answer[0]).relative_to(script_path)).parts[-1].split('.')[0],
                                                     block,
                                                     answer[1]['rt'],
-                                                    answer[0].split('\\')[2],
+                                                    (Path(answer[0]).relative_to(script_path)).parts[2],
                                                     answers_order,
                                                     answer[1]['selected_answer'],
                                                     int(answer[1]['is_correct']) if answer[1]['is_correct'] is not None else ""
                                                  ))
         dfile.flush()
+        print("Datos almacenados en el archivo")
+    elif practice == True:
+        print("Bloque de práctica finalizado. En bloques de práctica no se almacenan datos en el archivo.")
     else:
         print("Error al cargar el archivo de datos")
 
