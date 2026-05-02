@@ -429,8 +429,8 @@ def wait_answer(image, testing = False, answers_options = ["Neutral", "Happy", "
                 done = True
 
     rt = pygame.time.get_ticks() - tw
-
-    sleepy_trigger(210 + (10 if selected_answer == "Happy" else 0) + (20 if selected_answer == "Sad" else 0), lpt_address, trigger_latency) # user answer trigger
+    if not testing:
+        sleepy_trigger(210 + (10 if selected_answer == "Happy" else 0) + (20 if selected_answer == "Sad" else 0), trigger_latency) # user answer trigger
 
     # Se obtiene el path relativo de la imagen
     relative_path = Path(image).relative_to(script_path)
@@ -480,21 +480,23 @@ def show_images(image_list, practice=False, uid=None, dfile=None, block=None, bl
                     screen.blit(fix, fixbox)
                     pygame.display.update(fixbox)
                     pygame.display.flip()
-                    sleepy_trigger(150, lpt_address, trigger_latency) # fixation
+                    if not practice:
+                        sleepy_trigger(150, trigger_latency) # fixation
                     pygame.time.set_timer(phase_change, 1000, loops=1)
                     actual_phase = 2
                 elif actual_phase == 2:
                     show_image(image_list[count], base_size, grayscale=True)
 
-                    relative_path = Path(image).relative_to(script_path)
+                    relative_path = Path(image_list[count]).relative_to(script_path)
                     image_type = relative_path.parts[2]
-                    sleepy_trigger(160 + (10 if image_type == "Happy" else 0) + (20 if image_type == "Sad" else 0), lpt_address, trigger_latency) # image type trigger
+                    if not practice:
+                        sleepy_trigger(160 + (10 if image_type == "Happy" else 0) + (20 if image_type == "Sad" else 0), trigger_latency) # image type trigger
 
                     pygame.time.set_timer(phase_change, 200, loops=1)
                     actual_phase = 3
                 elif actual_phase == 3:
-
-                    sleepy_trigger(200, lpt_address, trigger_latency) # question onset trigger
+                    if not practice:
+                        sleepy_trigger(200, trigger_latency) # question onset trigger
                     answer = wait_answer(image_list[count], practice, block_answers_order)
                     answers_list.append([image_list[count], answer, block_answers_order[:]]) # Se usa [:] para copiar la lista y no referenciarla
                     count += 1
@@ -503,7 +505,8 @@ def show_images(image_list, practice=False, uid=None, dfile=None, block=None, bl
 
                     screen.fill(background)
                     pygame.display.flip()
-                    sleepy_trigger(190, lpt_address, trigger_latency) # image offset trigger
+                    if not practice:
+                        sleepy_trigger(190, trigger_latency) # image offset trigger
 
                     pygame.time.set_timer(phase_change, randint(1000, 1200), loops=1)
                     actual_phase = 1
@@ -621,19 +624,19 @@ def main():
 
     # ------------------------ first block ------------------------
 
-    sleepy_trigger(100, lpt_address, trigger_latency) # instructions
+    sleepy_trigger(100, trigger_latency) # instructions
     paragraph(select_slide('intro_block', variables= {"hand": firsthand}), key = K_SPACE)
 
-    sleepy_trigger(101, lpt_address, trigger_latency) # start block 1
+    sleepy_trigger(101, trigger_latency) # start block 1
     show_images(first_experiment_block, practice = False, uid=uid, dfile=dfile, block=1, block_answers_order = answers_options_order[answers_order_1])
-    sleepy_trigger(102, lpt_address, trigger_latency) # end block 1
+    sleepy_trigger(102, trigger_latency) # end block 1
     # sleepy_trigger(240 + 1, lpt_address, trigger_latency) # block number
 
-    sleepy_trigger(100, lpt_address, trigger_latency) # instructions
+    sleepy_trigger(100, trigger_latency) # instructions
     paragraph(select_slide('Break', variables= {"hand": secondhand}), key = K_SPACE, no_foot = True)
-    sleepy_trigger(103, lpt_address, trigger_latency) # start block 2
+    sleepy_trigger(103, trigger_latency) # start block 2
     show_images(second_experiment_block, practice = False, uid=uid, dfile=dfile, block=2, block_answers_order = answers_options_order[answers_order_2])
-    sleepy_trigger(104, lpt_address, trigger_latency) # end block 2
+    sleepy_trigger(104, trigger_latency) # end block 2
     # sleepy_trigger(240 + 1, lpt_address, trigger_latency) # block number
 
     paragraph(select_slide('farewell'), key = K_SPACE, no_foot = True)
