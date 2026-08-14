@@ -268,10 +268,14 @@ def paragraph(text, key=None, no_foot=False, color=None, limit_time=0, row=None,
     if color == None:
         color = char_color
 
+    texts = []
+
     for line in text:
         phrase = char.render(line, True, color)
         phrasebox = phrase.get_rect(centerx=center[0], top=row)
-        screen.blit(phrase, phrasebox)
+        text_temp = screen.blit(phrase, phrasebox)
+        if not is_clean:        
+            texts.append(text_temp.copy())
         row += 40
     if key != None:
         if key == K_SPACE:
@@ -284,8 +288,13 @@ def paragraph(text, key=None, no_foot=False, color=None, limit_time=0, row=None,
         foot = ""
     nextpage = charnext.render(foot, True, charnext_color)
     nextbox = nextpage.get_rect(left=15, bottom=resolution[1] - 15)
-    screen.blit(nextpage, nextbox)
-    pygame.display.flip()
+    next_page = screen.blit(nextpage, nextbox)
+
+    if is_clean:
+        pygame.display.flip()
+    else:
+        texts.append(next_page)
+        pygame.display.update(texts)
 
     if key != None or limit_time != 0:
         wait(key, limit_time)
@@ -397,9 +406,14 @@ def show_image(image, scale, grayscale=False):
                 gray = int(0.299 * r + 0.587 * g + 0.114 * b)
                 picture.set_at((x, y), (gray, gray, gray, a))
 
-    screen.blit(picture, image_in_center(picture, ydesv=-int(resolution[1] / 16) ))
+    image_area = screen.blit(picture, image_in_center(picture, ydesv=-int(resolution[1] / 16) ))
 
-    pygame.display.flip()
+    square, sq_pos = pygame.Surface((50, 50)), (resolution[0] - 50, resolution[1] - 50)
+    square.fill((0, 0, 0))
+
+    black_square = screen.blit(square, sq_pos)
+
+    pygame.display.update([image_area, black_square])
 
 
 def wait_answer(image, testing = False, answers_options = ["Neutral", "Happy", "Sad"]):
@@ -478,7 +492,6 @@ def show_images(image_list, practice=False, uid=None, dfile=None, block=None, bl
                 if actual_phase == 1:
                     screen.fill(background)
                     screen.blit(fix, fixbox)
-                    pygame.display.update(fixbox)
                     pygame.display.flip()
                     if not practice:
                         sleepy_trigger(150, trigger_latency) # fixation
