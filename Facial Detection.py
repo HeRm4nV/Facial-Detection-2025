@@ -579,8 +579,8 @@ def main():
             continue
 
         uid = subj_name.split("_")[0].strip()
-        condition = subj_name.split("_")[1].strip()
-        firsthand = subj_name.split("_")[2].strip()
+        condition = subj_name.split("_")[1].strip().upper()
+        firsthand = subj_name.split("_")[2].strip().upper()
         secondhand = "L" if firsthand == "R" else "R"
         answers_order_1 = int(subj_name.split("_")[3].strip()[0])
         answers_order_2 = int(subj_name.split("_")[3].strip()[1])
