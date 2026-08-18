@@ -505,7 +505,7 @@ def show_images(image_list, practice=False, uid=None, dfile=None, block=None, bl
                     if not practice:
                         sleepy_trigger(160 + (10 if image_type == "Happy" else 0) + (20 if image_type == "Sad" else 0), trigger_latency) # image type trigger
 
-                    pygame.time.set_timer(phase_change, 200, loops=1)
+                    pygame.time.set_timer(phase_change, 550, loops=1)
                     actual_phase = 3
                 elif actual_phase == 3:
                     if not practice:
