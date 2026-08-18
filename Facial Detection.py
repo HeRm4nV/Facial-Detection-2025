@@ -588,12 +588,22 @@ def main():
         if condition in ["C", "E"] and firsthand in ["L", "R"] and answers_order_1 in range(1,7) and answers_order_2 in range(1,7):
             correct_sub_name = True
 
+    
+    print("Ingrese el número correspondiente a la condición del participante y presione ENTER para iniciar:")
+    print("1. Registro previo a dosificación")
+    print("2. Registro posterior a dosificación")
+
+    condition_input = input("Ingrese el número de la condición (1 o 2): ")
+    while condition_input not in ["1", "2"]:
+        print("Número de condición inválido. Por favor, ingrese 1 o 2.")
+        condition_input = input("Ingrese el número de la condición (1 o 2): ")
+
     print("Condición seleccionada: " + condition) if debug_mode else None
     print("Mano de respuestas inicial: " + firsthand) if debug_mode else None
     print("Orden de respuestas bloque 1: " + ",".join(answers_options_order[answers_order_1])) if debug_mode else None
     print("Orden de respuestas bloque 2: " + ",".join(answers_options_order[answers_order_2])) if debug_mode else None
 
-    csv_name = subj_name + '_FacialDetection_' + date_name + '.csv'
+    csv_name = subj_name + ("_pre" if condition_input == 1 else "post") + '_FacialDetection_' + date_name + '.csv'
     dfile = open(script_path/"data"/csv_name, 'w')
     dfile.write("%s,%s,%s,%s,%s,%s,%s,%s\n" % ("Sujeto", "IdImagen", "Bloque", "TReaccion", "TipoImagen", "OrdenRespuestas", "Respuesta", "Acierto"))
     dfile.flush()
