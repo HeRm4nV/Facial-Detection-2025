@@ -28,6 +28,9 @@ FullScreenShow = True  # Pantalla completa automáticamente al iniciar el experi
 test_name = "Facial Detection Task"
 date_name = strftime("%Y-%m-%d_%H-%M-%S", gmtime())
 
+# Puerto de comunicación para triggers (ajustar según el sistema)
+serial_port = "COM5"  # Cambiar según el puerto de comunicación del sistema
+
 answers_options = ["Neutral", "Happy", "Sad"]
 
 # Se usará en la creación del ID para poder separar a los usuarios y darle orden a las alternativas
@@ -553,7 +556,7 @@ def show_images(image_list, practice=False, uid=None, dfile=None, block=None, bl
 def main():
     """Game's main loop"""
 
-    init_com()
+    init_com(address=serial_port)
 
     # Si no existe la carpeta data se crea
     if not os.path.exists(script_path/'data/'):
