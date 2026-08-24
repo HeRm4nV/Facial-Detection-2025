@@ -606,7 +606,7 @@ def main():
     print("Orden de respuestas bloque 1: " + ",".join(answers_options_order[answers_order_1])) if debug_mode else None
     print("Orden de respuestas bloque 2: " + ",".join(answers_options_order[answers_order_2])) if debug_mode else None
 
-    csv_name = subj_name + ("_pre" if condition_input == 1 else "post") + '_FacialDetection_' + date_name + '.csv'
+    csv_name = subj_name + ("_pre" if condition_input == "1" else "_post") + '_FacialDetection_' + date_name + '.csv'
     dfile = open(script_path/"data"/csv_name, 'w')
     dfile.write("%s,%s,%s,%s,%s,%s,%s,%s\n" % ("Sujeto", "IdImagen", "Bloque", "TReaccion", "TipoImagen", "OrdenRespuestas", "Respuesta", "Acierto"))
     dfile.flush()
